@@ -35,8 +35,40 @@ resource "aws_security_group" "allow-all" {
     tags = local.cluster_id_tag
 }
 
+resource "aws_eip" "master_eip" {
+    count = var.master_instance_count
+
+    vpc = false
+    lifecycle {
+        prevent_destroy = true
+    }
+}
+
+resource "aws_eip" "worker_eip" {
+    count = var.worker_instance_count
+
+    vpc = false
+    lifecycle {
+        prevent_destroy = true
+    }
+}
+
+resource "aws_eip_association" "master_eip_to_instance" {
+    count = var.master_instance_count
+
+    public_ip = aws_eip.master_eip[count.index].id
+    instance_id = aws_instance.rke-master-node[count.index].id
+}
+
+resource "aws_eip_association" "worker_eip_to_instance" {
+    count = var.worker_instance_count
+
+    public_ip = aws_eip.worker_eip[count.index].id
+    instance_id = aws_instance.rke-worker-node[count.index].id
+}
+
 resource "aws_instance" "rke-master-node" {
-    count = 1
+    count = var.master_instance_count
 
     ami                    = data.aws_ami.ubuntu.id
     instance_type          = var.master_instance_type
@@ -45,6 +77,11 @@ resource "aws_instance" "rke-master-node" {
     vpc_security_group_ids = [aws_security_group.allow-all.id]
     tags                   = local.cluster_id_tag
     availability_zone      = data.aws_availability_zones.az.names[count.index % length(data.aws_availability_zones.az.names)]
+
+    root_block_device {
+        volume_type = "gp2"
+        volume_size = 16
+    }
 
     provisioner "remote-exec" {
         connection {
@@ -62,7 +99,7 @@ resource "aws_instance" "rke-master-node" {
 }
 
 resource "aws_instance" "rke-worker-node" {
-    count = 1
+    count = var.worker_instance_count
 
     ami                    = data.aws_ami.ubuntu.id
     instance_type          = var.worker_instance_type
@@ -71,6 +108,11 @@ resource "aws_instance" "rke-worker-node" {
     vpc_security_group_ids = [aws_security_group.allow-all.id]
     tags                   = local.cluster_id_tag
     availability_zone      = data.aws_availability_zones.az.names[count.index % length(data.aws_availability_zones.az.names)]
+
+    root_block_device {
+        volume_type = "gp2"
+        volume_size = 16
+    }
 
     provisioner "remote-exec" {
         connection {

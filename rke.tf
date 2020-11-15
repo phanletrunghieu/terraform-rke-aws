@@ -10,7 +10,7 @@ terraform {
 module "nodes" {
     source                 = "./aws"
     # region               = "ap-southeast-1"
-    # cluster_id           = "rke"
+    cluster_id           = "rke1"
     # master_instance_type = "t3a.micro"
     # worker_instance_type = "t3a.small"
 }
