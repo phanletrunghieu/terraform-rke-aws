@@ -10,7 +10,7 @@ terraform {
 module "nodes" {
     source                 = "./aws"
     # region               = "ap-southeast-1"
-    cluster_id           = "rke1"
+    cluster_id           = "rke"
     # master_instance_type = "t3a.micro"
     # worker_instance_type = "t3a.small"
 }
@@ -20,7 +20,7 @@ provider "rke" {
     log_file = "rke.log"
 }
 
-resource "rke_cluster" "cluster" {
+resource "rke_cluster" "cluster1" {
     cloud_provider {
         name = "aws"
     }
@@ -70,5 +70,5 @@ EOF
 
 resource "local_file" "kube_cluster_yaml" {
     filename = "./kube_config_cluster.yml"
-    content  = rke_cluster.cluster.kube_config_yaml
+    content  = rke_cluster.cluster1.kube_config_yaml
 }

@@ -1,6 +1,6 @@
 # Step 1: Create an IAM role
-resource "aws_iam_role" "rke-master-role" {
-    name = "rke-master-role"
+resource "aws_iam_role" "rke_master_role" {
+    name = "rke_master_role"
 
     assume_role_policy = <<EOF
 {
@@ -22,8 +22,8 @@ resource "aws_iam_role" "rke-master-role" {
 EOF
 }
 
-resource "aws_iam_role" "rke-worker-role" {
-    name = "rke-worker-role"
+resource "aws_iam_role" "rke_worker_role" {
+    name = "rke_worker_role"
 
     assume_role_policy = <<EOF
 {
@@ -42,9 +42,9 @@ EOF
 }
 
 # Step 2: Add our Access Policy
-resource "aws_iam_role_policy" "rke-master-access-policy" {
-    name  = "rke-master-access-policy"
-    role = aws_iam_role.rke-master-role.id
+resource "aws_iam_role_policy" "rke_master_access_policy" {
+    name  = "rke_master_access_policy"
+    role = aws_iam_role.rke_master_role.id
 
     policy = <<EOF
 {
@@ -119,9 +119,9 @@ resource "aws_iam_role_policy" "rke-master-access-policy" {
 EOF
 }
 
-resource "aws_iam_role_policy" "rke-worker-access-policy" {
-    name  = "rke-worker-access-policy"
-    role = aws_iam_role.rke-worker-role.id
+resource "aws_iam_role_policy" "rke_worker_access_policy" {
+    name  = "rke_worker_access_policy"
+    role = aws_iam_role.rke_worker_role.id
 
     policy = <<EOF
 {
@@ -149,12 +149,12 @@ EOF
 }
 
 # Step 3: Create the Instance Profile
-resource "aws_iam_instance_profile" "rke-master-aws" {
-    name = "rke-master-aws"
-    role = aws_iam_role.rke-master-role.name
+resource "aws_iam_instance_profile" "rke_master_aws" {
+    name = "rke_master_aws"
+    role = aws_iam_role.rke_master_role.name
 }
 
-resource "aws_iam_instance_profile" "rke-worker-aws" {
-    name = "rke-worker-aws"
-    role = aws_iam_role.rke-worker-role.name
+resource "aws_iam_instance_profile" "rke_worker_aws" {
+    name = "rke_worker_aws"
+    role = aws_iam_role.rke_worker_role.name
 }

@@ -14,8 +14,8 @@ resource "aws_default_subnet" "default" {
     count             = length(data.aws_availability_zones.az.names)
 }
 
-resource "aws_security_group" "allow-all" {
-    name        = "rke-default-security-group"
+resource "aws_security_group" "allow_all" {
+    name        = "rke_default_security_group"
     description = "rke"
 
     ingress {
@@ -35,46 +35,28 @@ resource "aws_security_group" "allow-all" {
     tags = local.cluster_id_tag
 }
 
-resource "aws_eip" "master_eip" {
+resource "aws_eip" "rke_master_eip" {
     count = var.master_instance_count
 
-    vpc = false
-    lifecycle {
-        prevent_destroy = true
-    }
+    vpc = true
+    instance = aws_instance.rke_master_node[count.index].id
 }
 
-resource "aws_eip" "worker_eip" {
+resource "aws_eip" "rke_worker_eip" {
     count = var.worker_instance_count
 
-    vpc = false
-    lifecycle {
-        prevent_destroy = true
-    }
+    vpc = true
+    instance = aws_instance.rke_worker_node[count.index].id
 }
 
-resource "aws_eip_association" "master_eip_to_instance" {
-    count = var.master_instance_count
-
-    public_ip = aws_eip.master_eip[count.index].id
-    instance_id = aws_instance.rke-master-node[count.index].id
-}
-
-resource "aws_eip_association" "worker_eip_to_instance" {
-    count = var.worker_instance_count
-
-    public_ip = aws_eip.worker_eip[count.index].id
-    instance_id = aws_instance.rke-worker-node[count.index].id
-}
-
-resource "aws_instance" "rke-master-node" {
+resource "aws_instance" "rke_master_node" {
     count = var.master_instance_count
 
     ami                    = data.aws_ami.ubuntu.id
     instance_type          = var.master_instance_type
-    key_name               = aws_key_pair.rke-node-key.id
-    iam_instance_profile   = aws_iam_instance_profile.rke-master-aws.name
-    vpc_security_group_ids = [aws_security_group.allow-all.id]
+    key_name               = aws_key_pair.rke_node_key.id
+    iam_instance_profile   = aws_iam_instance_profile.rke_master_aws.name
+    vpc_security_group_ids = [aws_security_group.allow_all.id]
     tags                   = local.cluster_id_tag
     availability_zone      = data.aws_availability_zones.az.names[count.index % length(data.aws_availability_zones.az.names)]
 
@@ -88,7 +70,7 @@ resource "aws_instance" "rke-master-node" {
             host        = coalesce(self.public_ip, self.private_ip)
             type        = "ssh"
             user        = "ubuntu"
-            private_key = tls_private_key.node-key.private_key_pem
+            private_key = tls_private_key.node_key.private_key_pem
         }
 
         inline = [
@@ -98,14 +80,14 @@ resource "aws_instance" "rke-master-node" {
     }
 }
 
-resource "aws_instance" "rke-worker-node" {
+resource "aws_instance" "rke_worker_node" {
     count = var.worker_instance_count
 
     ami                    = data.aws_ami.ubuntu.id
     instance_type          = var.worker_instance_type
-    key_name               = aws_key_pair.rke-node-key.id
-    iam_instance_profile   = aws_iam_instance_profile.rke-worker-aws.name
-    vpc_security_group_ids = [aws_security_group.allow-all.id]
+    key_name               = aws_key_pair.rke_node_key.id
+    iam_instance_profile   = aws_iam_instance_profile.rke_worker_aws.name
+    vpc_security_group_ids = [aws_security_group.allow_all.id]
     tags                   = local.cluster_id_tag
     availability_zone      = data.aws_availability_zones.az.names[count.index % length(data.aws_availability_zones.az.names)]
 
@@ -119,7 +101,7 @@ resource "aws_instance" "rke-worker-node" {
             host        = coalesce(self.public_ip, self.private_ip)
             type        = "ssh"
             user        = "ubuntu"
-            private_key = tls_private_key.node-key.private_key_pem
+            private_key = tls_private_key.node_key.private_key_pem
         }
 
         inline = [
